@@ -1,79 +1,85 @@
 import React from 'react';
 import type { AtRule } from '../types';
+import {
+  Layers,
+  Smartphone,
+  Film,
+  CheckCircle2,
+  Type,
+  FileQuestion,
+} from 'lucide-react';
 
 interface AtRulesViewProps {
   atRules: AtRule[];
 }
 
 export const AtRulesView: React.FC<AtRulesViewProps> = ({ atRules }) => {
-  const getAtRuleIcon = (keyword: string) => {
+  const renderAtRuleIcon = (keyword: string) => {
     switch (keyword) {
       case 'media':
-        return 'devices';
+        return <Smartphone className="h-4 w-4 text-indigo-600" />;
       case 'keyframes':
       case '-webkit-keyframes':
-        return 'animation';
+        return <Film className="h-4 w-4 text-indigo-600" />;
       case 'supports':
-        return 'verified';
+        return <CheckCircle2 className="h-4 w-4 text-indigo-600" />;
       case 'font-face':
-        return 'font_download';
+        return <Type className="h-4 w-4 text-indigo-600" />;
       default:
-        return 'data_object';
+        return <Layers className="h-4 w-4 text-indigo-600" />;
     }
   };
 
   return (
-    <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-outline-variant/30 flex flex-col gap-space-lg animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md pb-space-xs border-b border-outline-variant/20">
+    <div className="bg-white rounded-xl p-5 sm:p-6 shadow-2xs border border-slate-200 flex flex-col gap-5 animate-in fade-in duration-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-space-xs">
-            <span className="material-symbols-outlined text-primary text-[22px]">data_object</span>
-            <h2 className="font-headline-lg text-headline-lg text-on-surface">Media Queries & At-Rules Registry</h2>
-            <span className="font-code-sm text-code-sm px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+          <div className="flex items-center gap-2">
+            <Layers className="h-5 w-5 text-indigo-600" />
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Media Queries & At-Rules Registry</h2>
+            <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold border border-indigo-100">
               {atRules.length} at-rules
             </span>
           </div>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-0.5">
-            Introspection of conditional CSS blocks, media query queries, keyframe animations, and custom font configurations.
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Introspection of conditional CSS blocks, media queries, keyframe animations, and custom font configurations.
           </p>
         </div>
       </div>
 
       {atRules.length === 0 ? (
-        <div className="py-12 text-center text-on-surface-variant">
-          <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant mx-auto mb-2">
-            <span className="material-symbols-outlined text-[24px]">filter_none</span>
+        <div className="py-12 text-center text-slate-500">
+          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-3">
+            <FileQuestion className="h-6 w-6" />
           </div>
-          <p className="font-headline-sm text-headline-sm text-on-surface mb-1">No At-Rules Detected</p>
-          <p className="font-body-sm text-body-sm">The current stylesheet does not define @media queries or at-rules.</p>
+          <p className="font-bold text-slate-800 text-sm mb-1">No At-Rules Detected</p>
+          <p className="text-xs text-slate-400">The current stylesheet does not define @media queries or at-rules.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {atRules.map((rule, idx) => (
             <div
               key={idx}
-              className="p-space-md rounded-xl border border-outline-variant/30 bg-surface-container-low hover:bg-surface-container transition-colors flex flex-col justify-between gap-space-sm shadow-xs"
+              className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 hover:border-slate-300 transition-colors flex flex-col justify-between gap-3 shadow-2xs"
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[18px]">
-                        {getAtRuleIcon(rule.at_keyword)}
-                      </span>
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                      {renderAtRuleIcon(rule.at_keyword)}
                     </div>
-                    <span className="font-code-sm text-code-sm font-bold text-primary">
+                    <span className="font-mono text-xs font-bold text-indigo-700">
                       @{rule.at_keyword}
                     </span>
                   </div>
-                  <span className="font-code-sm text-code-sm text-on-surface-variant">
+                  <span className="font-mono text-xs text-slate-400">
                     {rule.line ? `Line ${rule.line}` : '—'}
                   </span>
                 </div>
 
                 {rule.prelude && (
                   <p
-                    className="font-code-sm text-code-sm text-on-surface bg-surface-container-lowest px-2.5 py-1.5 rounded-lg border border-outline-variant/30 mb-2 truncate"
+                    className="font-mono text-xs text-slate-800 bg-white px-3 py-2 rounded-lg border border-slate-200 mb-2 truncate shadow-2xs"
                     title={rule.prelude}
                   >
                     {rule.prelude}
@@ -81,15 +87,15 @@ export const AtRulesView: React.FC<AtRulesViewProps> = ({ atRules }) => {
                 )}
               </div>
 
-              <div className="flex items-center gap-4 font-body-sm text-body-sm text-on-surface-variant pt-2 border-t border-outline-variant/20">
+              <div className="flex items-center gap-4 text-xs text-slate-500 pt-2 border-t border-slate-200">
                 {rule.rules_count > 0 && (
                   <span>
-                    Nested Rules: <strong className="text-on-surface font-code-sm">{rule.rules_count}</strong>
+                    Nested Rules: <strong className="text-slate-900 font-mono font-semibold">{rule.rules_count}</strong>
                   </span>
                 )}
                 {rule.declarations_count > 0 && (
                   <span>
-                    Direct Declarations: <strong className="text-on-surface font-code-sm">{rule.declarations_count}</strong>
+                    Direct Declarations: <strong className="text-slate-900 font-mono font-semibold">{rule.declarations_count}</strong>
                   </span>
                 )}
               </div>

@@ -135,6 +135,7 @@ export function App() {
       const result: AnalysisResult = await res.json();
       setAnalysisResult(result);
       setStagedFile(file);
+      setActiveTab('overview');
     } catch (err: any) {
       setErrorMessage(
         err.message || 'Failed to communicate with FastAPI backend. Ensure server is active on :8000.'
@@ -159,22 +160,21 @@ export function App() {
     setErrorMessage(null);
 
     try {
+      let file: File;
       if (type === 'standard') {
         const res = await fetch(`${API_BASE_URL}/api/sample`);
         if (!res.ok) throw new Error('Failed to load sample from backend API');
         const data = await res.json();
-        const file = new File([data.content], data.filename || 'showcase_sample.css', {
+        file = new File([data.content], data.filename || 'showcase_sample.css', {
           type: 'text/css',
         });
-        setStagedFile(file);
-        await executeAnalysis(file);
       } else {
-        const file = new File([EDGE_CASES_CSS], 'torture_edge_cases.css', {
+        file = new File([EDGE_CASES_CSS], 'torture_edge_cases.css', {
           type: 'text/css',
         });
-        setStagedFile(file);
-        await executeAnalysis(file);
       }
+      setStagedFile(file);
+      await executeAnalysis(file);
     } catch (err: any) {
       setErrorMessage(err.message || 'Error loading sample CSS');
       setIsLoading(false);
@@ -196,12 +196,13 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col selection:bg-primary/20 selection:text-primary">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased flex flex-col selection:bg-indigo-100 selection:text-indigo-800">
       {/* Compact Header with 8 Horizontal Tabs (Tasks 4 & 5) */}
       <Header
         activeTab={activeTab}
         onTabChange={setActiveTab}
         analysisResult={analysisResult}
+        stagedFileName={stagedFile?.name}
         apiHealth={apiHealth}
         onTrySample={() => handleLoadSample('standard')}
         onExportJson={handleExportJson}
@@ -306,18 +307,18 @@ export function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-outline-variant/30 bg-surface-container-low py-6 text-body-sm text-on-surface-variant">
-        <div className="max-w-7xl mx-auto px-space-lg flex flex-col sm:flex-row items-center justify-between gap-space-sm">
-          <div className="flex items-center gap-space-xs">
-            <span className="font-semibold text-on-surface">CSS INSIGHT</span>
-            <span>•</span>
+      {/* Compact Polished Footer */}
+      <footer className="w-full border-t border-slate-200 bg-white py-4 text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+          <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+            <span className="font-semibold text-slate-800">CSS INSIGHT</span>
+            <span className="text-slate-300">•</span>
             <span>Skill First Labs Internship Shortlisting — Milestone 1: CSS Parser</span>
           </div>
-          <div className="flex items-center gap-space-sm text-code-sm">
-            <span>Powered by <strong className="text-primary">tinycss2</strong> & <strong className="text-primary">FastAPI</strong></span>
-            <span>•</span>
-            <span className="px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono">v1.2.4-prod</span>
+          <div className="flex items-center gap-2 font-mono text-[11px] justify-center">
+            <span>Powered by <strong className="text-indigo-600 font-semibold">tinycss2</strong> & <strong className="text-indigo-600 font-semibold">FastAPI</strong></span>
+            <span className="text-slate-300">•</span>
+            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 font-medium">v1.2.4-prod</span>
           </div>
         </div>
       </footer>

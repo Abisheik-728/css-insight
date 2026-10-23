@@ -1,5 +1,20 @@
 import React, { useState } from 'react';
 import type { AnalysisResult } from '../types';
+import {
+  FileCode,
+  FolderTree,
+  Layers,
+  SlidersHorizontal,
+  Palette,
+  AlertTriangle,
+  Clock,
+  ArrowRight,
+  UploadCloud,
+  Play,
+  Check,
+  Copy,
+  Info,
+} from 'lucide-react';
 
 interface OverviewViewProps {
   data: AnalysisResult | null;
@@ -24,30 +39,31 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     setTimeout(() => setCopiedColor(null), 2000);
   };
 
+  // Compact, centered empty state as requested in Item 3
   if (!data) {
     return (
-      <div className="bg-surface-container-lowest rounded-xl p-space-2xl shadow-sm border border-outline-variant/30 text-center flex flex-col items-center justify-center gap-space-md py-16 animate-in fade-in duration-200">
-        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-primary mb-2">
-          <span className="material-symbols-outlined text-[32px]">dashboard</span>
+      <div className="max-w-md mx-auto my-8 sm:my-14 bg-white rounded-2xl border border-slate-200/90 shadow-sm p-8 text-center animate-in fade-in duration-200">
+        <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mx-auto mb-4 shadow-2xs">
+          <FileCode className="h-6 w-6" />
         </div>
-        <h2 className="font-headline-lg text-headline-lg text-on-surface">No Stylesheet Analyzed Yet</h2>
-        <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
-          Upload a stylesheet in the Analyze tab or run one of our pre-bundled sample datasets to unlock real AST telemetry and metrics.
+        <h2 className="text-lg font-bold text-slate-900 mb-1.5">No stylesheet analyzed yet</h2>
+        <p className="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">
+          Upload a CSS file to extract selectors, declarations, properties, and AST telemetry, or try a pre-bundled sample stylesheet.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
           <button
             onClick={onGoToAnalyze}
-            className="px-space-lg py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md font-semibold transition-colors flex items-center gap-2 shadow-sm"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs sm:text-sm shadow-xs transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">upload_file</span>
-            <span>Upload Stylesheet</span>
+            <UploadCloud className="h-4 w-4" />
+            <span>Upload stylesheet</span>
           </button>
           <button
             onClick={onLoadSample}
-            className="px-space-lg py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-container text-on-surface font-label-md text-label-md font-medium transition-colors flex items-center gap-2"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium text-xs sm:text-sm transition-colors shadow-2xs"
           >
-            <span className="material-symbols-outlined text-[18px]">science</span>
-            <span>Load Standard Sample</span>
+            <Play className="h-4 w-4 fill-indigo-600 text-indigo-600" />
+            <span>Load sample CSS</span>
           </button>
         </div>
       </div>
@@ -60,126 +76,142 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     {
       title: 'Style Rules',
       value: meta.total_rules,
-      icon: 'format_paint',
-      badge: 'Rules',
-      desc: 'Total qualified CSS blocks mapped to one or more selectors.',
+      icon: FileCode,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      borderColor: 'border-indigo-100',
+      description: 'Qualified rule blocks mapping selectors to declarations.',
     },
     {
       title: 'Individual Selectors',
       value: meta.total_selectors,
-      icon: 'account_tree',
-      badge: 'Targets',
-      desc: 'Discrete targets extracted from comma-separated selector lists.',
+      icon: FolderTree,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-100',
+      description: 'Discrete targets extracted from comma-separated selector lists.',
     },
     {
       title: 'Declarations',
       value: meta.total_declarations,
-      icon: 'layers',
-      badge: 'Statements',
-      desc: 'Individual property-value pairs declared inside rule blocks.',
+      icon: Layers,
+      color: 'text-violet-600',
+      bgColor: 'bg-violet-50',
+      borderColor: 'border-violet-100',
+      description: 'Property-value statements declared inside rule blocks.',
     },
     {
       title: 'Unique Properties',
       value: meta.unique_properties,
-      icon: 'tune',
-      badge: 'Distinct',
-      desc: 'Distinct CSS property names utilized across the stylesheet.',
+      icon: SlidersHorizontal,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-100',
+      description: 'Distinct CSS property names utilized in the stylesheet.',
     },
     {
       title: 'Detectable Colors',
       value: meta.unique_colors,
-      icon: 'palette',
-      badge: 'Palette',
-      desc: 'Unique hex codes, rgb/rgba, hsl/hsla, and named colors.',
+      icon: Palette,
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50',
+      borderColor: 'border-pink-100',
+      description: 'Catalog of unique hex, rgb(), hsl(), and named colors.',
     },
     {
       title: 'Diagnostics & Warnings',
       value: data.warnings.length,
-      icon: 'warning',
-      badge: data.warnings.length > 0 ? 'Notices' : 'Clean',
-      badgeColor: data.warnings.length > 0 ? 'bg-error-container text-on-error-container' : 'bg-surface-container text-primary',
-      desc: 'Duplicate declarations, vendor fallback notes, and syntax errors.',
+      icon: AlertTriangle,
+      color: data.warnings.length > 0 ? 'text-amber-600' : 'text-emerald-600',
+      bgColor: data.warnings.length > 0 ? 'bg-amber-50' : 'bg-emerald-50',
+      borderColor: data.warnings.length > 0 ? 'border-amber-100' : 'border-emerald-100',
+      description: data.warnings.length > 0 ? 'Duplicate declarations or syntax recovery notices.' : 'Clean AST parse without duplication or syntax warnings.',
     },
   ];
 
   return (
-    <div className="flex flex-col w-full gap-space-xl animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200">
       {/* Overview Top Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md pb-space-xs border-b border-outline-variant/30">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-space-xs text-primary font-code-sm text-code-sm uppercase tracking-wider font-semibold">
-            <span className="inline-block w-2 h-2 rounded-full bg-primary"></span>
+          <div className="flex items-center gap-1.5 text-indigo-600 text-xs font-semibold uppercase tracking-wider mb-1">
+            <span className="h-2 w-2 rounded-full bg-indigo-600"></span>
             Telemetry Dashboard
           </div>
-          <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Stylesheet Overview
           </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-0.5">
-            Real AST calculations generated directly from <span className="font-code-sm text-primary font-semibold">{meta.filename}</span>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Real AST calculations from <span className="font-mono text-indigo-700 font-semibold">{meta.filename}</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="px-space-md py-1.5 rounded-lg bg-surface-container-high text-on-surface font-code-sm text-code-sm flex items-center gap-2 shadow-sm">
-            <span className="material-symbols-outlined text-[16px] text-primary">timer</span>
-            <span>Parse duration: <strong className="font-semibold">{meta.parse_time_ms} ms</strong></span>
+          <div className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-mono flex items-center gap-2 shadow-2xs">
+            <Clock className="h-3.5 w-3.5 text-indigo-600" />
+            <span>Parse duration: <strong className="font-semibold text-slate-900">{meta.parse_time_ms} ms</strong></span>
           </div>
         </div>
       </div>
 
-      {/* 6 Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-space-md">
-        {cards.map((c, idx) => (
-          <div
-            key={idx}
-            className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm border border-outline-variant/30 flex flex-col justify-between hover:bg-surface-container-low transition-colors group"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-space-sm">
-                <span className="font-label-sm text-label-sm text-on-surface-variant">{c.title}</span>
-                <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:scale-105 transition-transform shadow-xs">
-                  <span className="material-symbols-outlined text-[18px]">{c.icon}</span>
+      {/* 6 Real Backend Metrics Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        {cards.map((c, idx) => {
+          const Icon = c.icon;
+          return (
+            <div
+              key={idx}
+              className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-colors"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-slate-500 truncate">{c.title}</span>
+                  <div className={`w-7 h-7 rounded-lg ${c.bgColor} ${c.borderColor} border flex items-center justify-center shrink-0`}>
+                    <Icon className={`h-4 w-4 ${c.color}`} />
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-3xl font-bold font-mono text-slate-900 tracking-tight">
+                  {c.value.toLocaleString()}
                 </div>
               </div>
-              <div className="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight mb-1">
-                {c.value.toLocaleString()}
-              </div>
+              <p className="text-[11px] text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+                {c.description}
+              </p>
             </div>
-            <p className="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-2 leading-relaxed">
-              {c.desc}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Extracted Color Palette */}
       {data.detected_colors.length > 0 && (
-        <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-outline-variant/30 flex flex-col gap-space-md">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-space-xs">
-              <span className="material-symbols-outlined text-primary text-[20px]">palette</span>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-2xs">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Palette className="h-4 w-4 text-pink-600" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                 Extracted Color Palette ({data.detected_colors.length})
               </h3>
             </div>
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Click to copy hex/code</span>
+            <span className="text-[11px] text-slate-400">Click swatch to copy</span>
           </div>
 
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap gap-2">
             {data.detected_colors.map((color, idx) => (
               <button
                 key={idx}
                 onClick={() => handleCopyColor(color)}
-                className="flex items-center gap-2 px-space-sm py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/30 transition-all cursor-pointer font-code-sm text-code-sm text-on-surface group shadow-xs"
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700 transition-colors shadow-2xs cursor-pointer group"
                 title="Click to copy color code"
               >
                 <span
-                  className="w-4 h-4 rounded-full border border-outline-variant shadow-xs shrink-0"
+                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-xs shrink-0"
                   style={{ backgroundColor: color }}
                 />
                 <span className="font-medium">{color}</span>
-                {copiedColor === color && (
-                  <span className="text-[10px] text-primary font-bold animate-in fade-in">Copied!</span>
+                {copiedColor === color ? (
+                  <Check className="h-3 w-3 text-emerald-600 animate-in fade-in" />
+                ) : (
+                  <Copy className="h-3 w-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 )}
               </button>
             ))}
@@ -187,39 +219,39 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
       )}
 
-      {/* Top Properties & AST Telemetry Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
-        {/* Left (8 cols): Top Properties Frequency */}
-        <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-outline-variant/30 flex flex-col gap-space-md">
-          <div className="flex items-center justify-between pb-space-xs border-b border-outline-variant/20">
-            <div className="flex items-center gap-space-xs">
-              <span className="material-symbols-outlined text-primary text-[20px]">bar_chart</span>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface">
+      {/* Top Properties & Architecture Split */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left: Top Properties */}
+        <div className="lg:col-span-8 bg-white rounded-xl p-5 border border-slate-200 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4 text-indigo-600" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                 Top Utilized CSS Properties
               </h3>
             </div>
             <button
               onClick={onGoToProperties}
-              className="text-primary hover:text-primary-container font-label-sm text-label-sm font-medium flex items-center gap-1"
+              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
             >
               <span>Explore all declarations</span>
-              <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {data.top_properties.slice(0, 10).map((p, idx) => (
               <div
                 key={idx}
-                className="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-1 border border-outline-variant/20"
+                className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col gap-1"
               >
-                <div className="flex items-center justify-between font-code-sm text-code-sm">
-                  <span className="font-semibold text-primary">{p.property}</span>
-                  <span className="text-on-surface-variant font-medium">{p.count}x ({p.percentage}%)</span>
+                <div className="flex items-center justify-between font-mono text-xs">
+                  <span className="font-semibold text-indigo-700 truncate">{p.property}</span>
+                  <span className="text-slate-500 font-sans text-[11px]">{p.count}x ({p.percentage}%)</span>
                 </div>
-                <div className="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden mt-1">
+                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1">
                   <div
-                    className="bg-primary h-full rounded-full"
+                    className="bg-indigo-600 h-full rounded-full"
                     style={{ width: `${Math.min(p.percentage * 2.5, 100)}%` }}
                   />
                 </div>
@@ -228,47 +260,47 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           </div>
         </div>
 
-        {/* Right (4 cols): Telemetry Specs */}
-        <div className="lg:col-span-4 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-outline-variant/30 flex flex-col gap-space-md">
-          <div className="flex items-center gap-space-xs pb-space-xs border-b border-outline-variant/20">
-            <span className="material-symbols-outlined text-secondary text-[20px]">info</span>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface">
+        {/* Right: Architecture Summary */}
+        <div className="lg:col-span-4 bg-white rounded-xl p-5 border border-slate-200 shadow-2xs space-y-3">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <Info className="h-4 w-4 text-slate-500" />
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
               Stylesheet Architecture
             </h3>
           </div>
 
-          <div className="flex flex-col gap-space-sm font-body-sm text-body-sm">
-            <div className="flex items-center justify-between p-2 rounded bg-surface-container-low">
-              <span className="text-on-surface-variant">File Name:</span>
-              <span className="font-code-sm text-code-sm font-semibold text-on-surface truncate max-w-[180px]">
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+              <span className="text-slate-500">File Name:</span>
+              <span className="font-mono font-semibold text-slate-800 truncate max-w-[160px]">
                 {meta.filename}
               </span>
             </div>
 
-            <div className="flex items-center justify-between p-2 rounded bg-surface-container-low">
-              <span className="text-on-surface-variant">File Size:</span>
-              <span className="font-code-sm text-code-sm font-semibold text-on-surface">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+              <span className="text-slate-500">File Size:</span>
+              <span className="font-mono font-semibold text-slate-800">
                 {(meta.file_size_bytes / 1024).toFixed(1)} KB
               </span>
             </div>
 
-            <div className="flex items-center justify-between p-2 rounded bg-surface-container-low">
-              <span className="text-on-surface-variant">At-Rules / Queries:</span>
-              <span className="font-code-sm text-code-sm font-semibold text-primary">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+              <span className="text-slate-500">At-Rules / Queries:</span>
+              <span className="font-mono font-semibold text-indigo-600">
                 {meta.total_at_rules} rules
               </span>
             </div>
 
-            <div className="flex items-center justify-between p-2 rounded bg-surface-container-low">
-              <span className="text-on-surface-variant">Comments Parsed:</span>
-              <span className="font-code-sm text-code-sm font-semibold text-on-surface">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+              <span className="text-slate-500">Comments Parsed:</span>
+              <span className="font-mono font-semibold text-slate-800">
                 {meta.total_comments} blocks
               </span>
             </div>
 
-            <div className="flex items-center justify-between p-2 rounded bg-surface-container-low">
-              <span className="text-on-surface-variant">Parser Engine:</span>
-              <span className="font-code-sm text-code-sm font-semibold text-primary">
+            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+              <span className="text-slate-500">Parser Engine:</span>
+              <span className="font-mono font-semibold text-indigo-600">
                 tinycss2 W3C Spec
               </span>
             </div>
@@ -276,9 +308,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 
           <button
             onClick={onGoToSelectors}
-            className="w-full py-2 px-space-md rounded-lg bg-surface-container-high hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-medium transition-colors flex items-center justify-center gap-1.5"
+            className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 mt-2"
           >
-            <span className="material-symbols-outlined text-[16px]">account_tree</span>
+            <FolderTree className="h-3.5 w-3.5 text-indigo-600" />
             <span>View All {meta.total_rules} Rule Blocks</span>
           </button>
         </div>

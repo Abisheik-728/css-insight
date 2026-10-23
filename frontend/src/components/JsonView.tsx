@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
 import type { AnalysisResult } from '../types';
+import {
+  Code2,
+  UploadCloud,
+  Copy,
+  Check,
+  Download,
+  FileText,
+  Maximize2,
+  Minimize2,
+} from 'lucide-react';
 
 interface JsonViewProps {
   data: AnalysisResult | null;
@@ -12,19 +22,20 @@ export const JsonView: React.FC<JsonViewProps> = ({ data, onGoToAnalyze }) => {
 
   if (!data) {
     return (
-      <div className="bg-surface-container-lowest rounded-xl p-space-2xl shadow-sm border border-outline-variant/30 text-center flex flex-col items-center justify-center gap-space-md py-16 animate-in fade-in duration-200">
-        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-primary mb-2">
-          <span className="material-symbols-outlined text-[32px]">code</span>
+      <div className="bg-white rounded-xl p-8 sm:p-12 shadow-2xs border border-slate-200 text-center flex flex-col items-center justify-center gap-3 py-16 animate-in fade-in duration-200 max-w-lg mx-auto my-8">
+        <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-2">
+          <Code2 className="h-6 w-6" />
         </div>
-        <h2 className="font-headline-lg text-headline-lg text-on-surface">No AST Output Generated</h2>
-        <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
+        <h2 className="text-lg font-bold text-slate-900">No AST Output Generated</h2>
+        <p className="text-xs sm:text-sm text-slate-500 max-w-sm">
           Upload and analyze a CSS file to produce a verified Pydantic JSON AST payload ready for inspection and export.
         </p>
         <button
           onClick={onGoToAnalyze}
-          className="px-space-lg py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md font-semibold transition-colors flex items-center gap-2 mt-2 shadow-sm"
+          className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition-colors flex items-center gap-2 mt-2 shadow-xs cursor-pointer"
+          type="button"
         >
-          <span className="material-symbols-outlined text-[18px]">upload_file</span>
+          <UploadCloud className="h-4 w-4" />
           <span>Analyze a Stylesheet</span>
         </button>
       </div>
@@ -109,15 +120,15 @@ ${data.warnings.length === 0 ? '_No warnings or duplicate declarations detected.
   };
 
   return (
-    <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-outline-variant/30 flex flex-col gap-space-lg animate-in fade-in duration-200">
+    <div className="bg-white rounded-xl p-5 sm:p-6 shadow-2xs border border-slate-200 flex flex-col gap-5 animate-in fade-in duration-200">
       {/* Top Controls Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md pb-space-xs border-b border-outline-variant/20">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-space-xs">
-            <span className="material-symbols-outlined text-primary text-[22px]">code</span>
-            <h2 className="font-headline-lg text-headline-lg text-on-surface">Structured AST JSON Output</h2>
+          <div className="flex items-center gap-2">
+            <Code2 className="h-5 w-5 text-indigo-600" />
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Structured AST JSON Output</h2>
           </div>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Verified JSON schema output from the tinycss2 backend ready for CI/CD pipelines and programmatic consumption.
           </p>
         </div>
@@ -125,49 +136,53 @@ ${data.warnings.length === 0 ? '_No warnings or duplicate declarations detected.
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleCopyJson}
-            className="px-space-sm py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm font-medium transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
             type="button"
           >
-            <span className="material-symbols-outlined text-[16px]">
-              {copied ? 'check' : 'content_copy'}
-            </span>
+            {copied ? (
+              <Check className="h-3.5 w-3.5 text-emerald-600" />
+            ) : (
+              <Copy className="h-3.5 w-3.5 text-slate-400" />
+            )}
             <span>{copied ? 'Copied to Clipboard!' : 'Copy JSON'}</span>
           </button>
 
           <button
             onClick={handleDownloadJson}
-            className="px-space-sm py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold transition-colors flex items-center gap-1.5 shadow-xs"
+            className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
             type="button"
           >
-            <span className="material-symbols-outlined text-[16px]">download</span>
+            <Download className="h-3.5 w-3.5" />
             <span>Download JSON</span>
           </button>
 
           <button
             onClick={handleDownloadReport}
-            className="px-space-sm py-1.5 rounded-lg bg-secondary-container hover:bg-secondary-container/80 text-on-secondary-fixed-variant font-label-sm text-label-sm font-medium transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-medium transition-colors flex items-center gap-1.5 border border-slate-200 shadow-2xs cursor-pointer"
             type="button"
           >
-            <span className="material-symbols-outlined text-[16px]">description</span>
+            <FileText className="h-3.5 w-3.5 text-indigo-600" />
             <span>Download Report (MD)</span>
           </button>
 
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center"
+            className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 transition-colors flex items-center justify-center shadow-2xs cursor-pointer"
             title={isExpanded ? 'Collapse' : 'Expand'}
             type="button"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              {isExpanded ? 'fullscreen_exit' : 'fullscreen'}
-            </span>
+            {isExpanded ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>
 
       {/* Code Container */}
       <div
-        className={`rounded-xl border border-outline-variant/30 bg-[#121b2e] text-[#f8fafc] p-space-md sm:p-space-lg font-code-sm text-code-sm overflow-auto transition-all ${
+        className={`rounded-xl border border-slate-800 bg-slate-950 text-slate-100 p-4 sm:p-5 font-mono text-xs overflow-auto transition-all shadow-inner ${
           isExpanded ? 'max-h-[850px]' : 'max-h-[500px]'
         }`}
       >
