@@ -9,7 +9,7 @@
 ## Timeline & Narration
 
 ### [00:00 – 00:15] — 1. Introduction & Architecture
-- **Screen:** Show CSS INSIGHT homepage with dark Linear/Raycast-inspired theme, top navigation with "API Engine Active" live status badge, and side-by-side AST preview.
+- **Screen:** Show CSS INSIGHT application with Google Stitch light-theme design system, compact header with real-time "API Connected (14ms)" live status indicator, and horizontal navigation tabs.
 - **Voiceover:**
   > "Welcome to CSS INSIGHT. Modern developer workflows treat stylesheets as dumb strings, but CSS is structured code. CSS INSIGHT uses the W3C-compliant `tinycss2` parsing engine to analyze raw CSS files into an Abstract Syntax Tree, extracting deep architectural metrics, selector lists, and declaration telemetry in real-time."
 

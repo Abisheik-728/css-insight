@@ -25,7 +25,7 @@
 - **At-Rule & Media Query Registry:** Full introspection for `@media`, `@supports`, `@keyframes`, and `@font-face` blocks, including nested rule mappings.
 - **Color Extraction:** Detects and visualizes hex codes, rgb/rgba, hsl/hsla, and standard CSS named color keywords with palette preview swatches.
 - **Structured JSON & Report Generation:** Direct export of verified Pydantic JSON schemas or Markdown audit reports for CI/CD linting pipelines.
-- **Developer-Focused UI:** Inspired by Linear, Vercel, and Raycast. Dark developer aesthetic, high-contrast typography, interactive tables, and drag-and-drop file upload.
+- **Developer-Focused UI:** Integrated with Google Stitch design system, crisp light-theme palette, Material Symbols, compact header with 8 horizontal tabs, and interactive telemetry.
 - **Security-Hardened File Validation:** Multi-stage validation enforcing a configurable 2 MB limit, binary magic byte rejection (PNG, PE, ELF, ZIP), and null-byte sanitization.
 
 ---
