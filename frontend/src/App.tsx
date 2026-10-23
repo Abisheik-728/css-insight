@@ -1,16 +1,15 @@
-import { useState } from 'react';
-import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { UploadPanel } from './components/UploadPanel';
-import { SummaryCards } from './components/SummaryCards';
-import { SelectorExplorer } from './components/SelectorExplorer';
-import { PropertiesExplorer } from './components/PropertiesExplorer';
-import { AtRulesBreakdown } from './components/AtRulesBreakdown';
-import { DiagnosticsPanel } from './components/DiagnosticsPanel';
-import { JsonViewer } from './components/JsonViewer';
-import { DocumentationModal } from './components/DocumentationModal';
+import { useState, useEffect } from 'react';
+import { Header } from './components/Header';
+import type { TabId } from './components/Header';
+import { OverviewView } from './components/OverviewView';
+import { AnalyzeView } from './components/AnalyzeView';
+import { SelectorView } from './components/SelectorView';
+import { PropertiesView } from './components/PropertiesView';
+import { AtRulesView } from './components/AtRulesView';
+import { DiagnosticsView } from './components/DiagnosticsView';
+import { JsonView } from './components/JsonView';
+import { DocumentationView } from './components/DocumentationView';
 import type { AnalysisResult } from './types';
-import { Tag, SlidersHorizontal, Layers, AlertTriangle, Code2 } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -79,20 +78,40 @@ input[type="text"], input[type="password"], textarea:focus, .form-input-active {
 `;
 
 export function App() {
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [stagedFile, setStagedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isDocsOpen, setIsDocsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'selectors' | 'properties' | 'at_rules' | 'diagnostics' | 'json'>('selectors');
+  const [apiHealth, setApiHealth] = useState<{ online: boolean; latency: number }>({
+    online: false,
+    latency: 0,
+  });
 
-  const scrollToUpload = () => {
-    const el = document.getElementById('upload-panel');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  // Check backend health periodically and measure latency
+  useEffect(() => {
+    const checkHealth = async () => {
+      const startTime = performance.now();
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/health`);
+        const elapsed = Math.round(performance.now() - startTime);
+        if (res.ok) {
+          setApiHealth({ online: true, latency: Math.max(elapsed, 4) });
+        } else {
+          setApiHealth({ online: false, latency: 0 });
+        }
+      } catch {
+        setApiHealth({ online: false, latency: 0 });
+      }
+    };
 
-  const handleAnalyzeFile = async (file: File) => {
+    checkHealth();
+    const interval = setInterval(checkHealth, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Analyze file via POST /api/analyze
+  const executeAnalysis = async (file: File) => {
     setIsLoading(true);
     setErrorMessage(null);
 
@@ -100,196 +119,208 @@ export function App() {
     formData.append('file', file);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+      const res = await fetch(`${API_BASE_URL}/api/analyze`, {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        const detail = errorData?.detail || `Server returned ${response.status}: ${response.statusText}`;
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        const detail = errorData?.detail || `Server returned ${res.status}: ${res.statusText}`;
         setErrorMessage(detail);
         setIsLoading(false);
         return;
       }
 
-      const result: AnalysisResult = await response.json();
+      const result: AnalysisResult = await res.json();
       setAnalysisResult(result);
+      setStagedFile(file);
     } catch (err: any) {
       setErrorMessage(
-        err.message || 'Failed to connect to CSS Insight backend. Please ensure the Python server is running on port 8000.'
+        err.message || 'Failed to communicate with FastAPI backend. Ensure server is active on :8000.'
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleLoadSample = async (type: 'normal' | 'edge_cases') => {
-    if (type === 'normal') {
-      try {
-        setIsLoading(true);
-        setErrorMessage(null);
-        const res = await fetch(`${API_BASE_URL}/api/sample`);
-        if (!res.ok) throw new Error('Failed to fetch sample from backend');
-        const data = await res.json();
-        const file = new File([data.content], data.filename || 'showcase_sample.css', { type: 'text/css' });
-        await handleAnalyzeFile(file);
-      } catch (err: any) {
-        setErrorMessage(err.message || 'Error loading sample CSS');
-        setIsLoading(false);
-      }
-    } else {
-      const file = new File([EDGE_CASES_CSS], 'edge_cases_sample.css', { type: 'text/css' });
-      await handleAnalyzeFile(file);
-    }
-  };
-
-  const handleClear = () => {
-    setAnalysisResult(null);
+  const handleStageFile = (file: File) => {
+    setStagedFile(file);
     setErrorMessage(null);
   };
 
+  const handleRemoveFile = () => {
+    setStagedFile(null);
+    setErrorMessage(null);
+  };
+
+  const handleLoadSample = async (type: 'standard' | 'edge_cases') => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      if (type === 'standard') {
+        const res = await fetch(`${API_BASE_URL}/api/sample`);
+        if (!res.ok) throw new Error('Failed to load sample from backend API');
+        const data = await res.json();
+        const file = new File([data.content], data.filename || 'showcase_sample.css', {
+          type: 'text/css',
+        });
+        setStagedFile(file);
+        await executeAnalysis(file);
+      } else {
+        const file = new File([EDGE_CASES_CSS], 'torture_edge_cases.css', {
+          type: 'text/css',
+        });
+        setStagedFile(file);
+        await executeAnalysis(file);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error loading sample CSS');
+      setIsLoading(false);
+    }
+  };
+
+  const handleExportJson = () => {
+    if (!analysisResult) return;
+    const jsonString = JSON.stringify(analysisResult, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${analysisResult.metadata.filename.replace(/\.css$/i, '')}_analysis.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="min-h-screen bg-canvas text-slate-100 flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
-      <Navbar
-        onOpenDocs={() => setIsDocsOpen(true)}
-        onScrollToUpload={scrollToUpload}
+    <div className="min-h-screen bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col selection:bg-primary/20 selection:text-primary">
+      {/* Compact Header with 8 Horizontal Tabs (Tasks 4 & 5) */}
+      <Header
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        analysisResult={analysisResult}
+        apiHealth={apiHealth}
+        onTrySample={() => handleLoadSample('standard')}
+        onExportJson={handleExportJson}
+        isLoading={isLoading}
       />
 
-      <main className="flex-1 pb-20">
-        <Hero
-          onAnalyzeClick={scrollToUpload}
-          onTrySample={() => handleLoadSample('normal')}
-          isLoading={isLoading}
-        />
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-space-lg py-space-xl">
+        {activeTab === 'overview' && (
+          <OverviewView
+            data={analysisResult}
+            onGoToAnalyze={() => setActiveTab('analyze')}
+            onGoToSelectors={() => setActiveTab('selectors')}
+            onGoToProperties={() => setActiveTab('properties')}
+            onLoadSample={() => handleLoadSample('standard')}
+          />
+        )}
 
-        <UploadPanel
-          onAnalyze={handleAnalyzeFile}
-          onLoadSample={handleLoadSample}
-          onClear={handleClear}
-          isLoading={isLoading}
-          currentFilename={analysisResult?.metadata.filename}
-          currentFileSize={analysisResult?.metadata.file_size_bytes}
-          errorMessage={errorMessage}
-        />
+        {activeTab === 'analyze' && (
+          <AnalyzeView
+            onAnalyze={executeAnalysis}
+            onLoadSample={handleLoadSample}
+            stagedFile={stagedFile}
+            onStageFile={handleStageFile}
+            onRemoveFile={handleRemoveFile}
+            isLoading={isLoading}
+            errorMessage={errorMessage}
+            analysisResult={analysisResult}
+            onViewResults={() => setActiveTab('overview')}
+            onViewJson={() => setActiveTab('json')}
+          />
+        )}
 
-        {/* Dashboard Area */}
-        {analysisResult && (
-          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-8 animate-in fade-in duration-300">
-            {/* Top Summary Cards */}
-            <SummaryCards
-              metadata={analysisResult.metadata}
-              detectedColors={analysisResult.detected_colors}
-              warningsCount={analysisResult.warnings.length}
+        {activeTab === 'selectors' && (
+          analysisResult ? (
+            <SelectorView rules={analysisResult.rules} />
+          ) : (
+            <OverviewView
+              data={null}
+              onGoToAnalyze={() => setActiveTab('analyze')}
+              onGoToSelectors={() => setActiveTab('selectors')}
+              onGoToProperties={() => setActiveTab('properties')}
+              onLoadSample={() => handleLoadSample('standard')}
             />
+          )
+        )}
 
-            {/* Navigation Tabs for Deep Inspection */}
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.08] overflow-x-auto">
-              <button
-                onClick={() => setActiveTab('selectors')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                  activeTab === 'selectors'
-                    ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]'
-                }`}
-              >
-                <Tag className="h-3.5 w-3.5" />
-                Selector Explorer ({analysisResult.rules.length})
-              </button>
+        {activeTab === 'properties' && (
+          analysisResult ? (
+            <PropertiesView
+              rules={analysisResult.rules}
+              topProperties={analysisResult.top_properties}
+            />
+          ) : (
+            <OverviewView
+              data={null}
+              onGoToAnalyze={() => setActiveTab('analyze')}
+              onGoToSelectors={() => setActiveTab('selectors')}
+              onGoToProperties={() => setActiveTab('properties')}
+              onLoadSample={() => handleLoadSample('standard')}
+            />
+          )
+        )}
 
-              <button
-                onClick={() => setActiveTab('properties')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                  activeTab === 'properties'
-                    ? 'bg-violet-500/10 text-violet-300 border border-violet-500/30 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]'
-                }`}
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
-                Properties Telemetry ({analysisResult.metadata.total_declarations})
-              </button>
+        {activeTab === 'at_rules' && (
+          analysisResult ? (
+            <AtRulesView atRules={analysisResult.at_rules} />
+          ) : (
+            <OverviewView
+              data={null}
+              onGoToAnalyze={() => setActiveTab('analyze')}
+              onGoToSelectors={() => setActiveTab('selectors')}
+              onGoToProperties={() => setActiveTab('properties')}
+              onLoadSample={() => handleLoadSample('standard')}
+            />
+          )
+        )}
 
-              <button
-                onClick={() => setActiveTab('at_rules')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                  activeTab === 'at_rules'
-                    ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]'
-                }`}
-              >
-                <Layers className="h-3.5 w-3.5" />
-                Media & At-Rules ({analysisResult.at_rules.length})
-              </button>
+        {activeTab === 'diagnostics' && (
+          analysisResult ? (
+            <DiagnosticsView warnings={analysisResult.warnings} />
+          ) : (
+            <OverviewView
+              data={null}
+              onGoToAnalyze={() => setActiveTab('analyze')}
+              onGoToSelectors={() => setActiveTab('selectors')}
+              onGoToProperties={() => setActiveTab('properties')}
+              onLoadSample={() => handleLoadSample('standard')}
+            />
+          )
+        )}
 
-              <button
-                onClick={() => setActiveTab('diagnostics')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                  activeTab === 'diagnostics'
-                    ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]'
-                }`}
-              >
-                <AlertTriangle className="h-3.5 w-3.5" />
-                Diagnostics & Warnings ({analysisResult.warnings.length})
-              </button>
+        {activeTab === 'json' && (
+          <JsonView
+            data={analysisResult}
+            onGoToAnalyze={() => setActiveTab('analyze')}
+          />
+        )}
 
-              <button
-                onClick={() => setActiveTab('json')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                  activeTab === 'json'
-                    ? 'bg-white/[0.1] text-white border border-white/[0.2] shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]'
-                }`}
-              >
-                <Code2 className="h-3.5 w-3.5" />
-                Structured AST JSON
-              </button>
-            </div>
-
-            {/* Active Tab View */}
-            <div>
-              {activeTab === 'selectors' && (
-                <SelectorExplorer rules={analysisResult.rules} />
-              )}
-              {activeTab === 'properties' && (
-                <PropertiesExplorer
-                  rules={analysisResult.rules}
-                  topProperties={analysisResult.top_properties}
-                />
-              )}
-              {activeTab === 'at_rules' && (
-                <AtRulesBreakdown atRules={analysisResult.at_rules} />
-              )}
-              {activeTab === 'diagnostics' && (
-                <DiagnosticsPanel warnings={analysisResult.warnings} />
-              )}
-              {activeTab === 'json' && (
-                <JsonViewer data={analysisResult} />
-              )}
-            </div>
-          </section>
+        {activeTab === 'docs' && (
+          <DocumentationView />
         )}
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-white/[0.08] bg-[#090d16] py-8 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-300">CSS INSIGHT</span>
+      <footer className="w-full border-t border-outline-variant/30 bg-surface-container-low py-6 text-body-sm text-on-surface-variant">
+        <div className="max-w-7xl mx-auto px-space-lg flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+          <div className="flex items-center gap-space-xs">
+            <span className="font-semibold text-on-surface">CSS INSIGHT</span>
             <span>•</span>
             <span>Skill First Labs Internship Shortlisting — Milestone 1: CSS Parser</span>
           </div>
-          <div className="flex items-center gap-4 text-slate-400">
-            <span>Powered by <span className="font-mono text-cyan-400">tinycss2</span> & <span className="font-mono text-violet-400">FastAPI</span></span>
+          <div className="flex items-center gap-space-sm text-code-sm">
+            <span>Powered by <strong className="text-primary">tinycss2</strong> & <strong className="text-primary">FastAPI</strong></span>
+            <span>•</span>
+            <span className="px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono">v1.2.4-prod</span>
           </div>
         </div>
       </footer>
-
-      {/* Documentation Modal */}
-      <DocumentationModal
-        isOpen={isDocsOpen}
-        onClose={() => setIsDocsOpen(false)}
-      />
     </div>
   );
 }
