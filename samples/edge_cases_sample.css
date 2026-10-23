@@ -1,0 +1,62 @@
+/* ==========================================================================
+   CSS INSIGHT — Edge Cases & Stress Test Stylesheet
+   Demonstrates duplicate declarations, multi-selectors, fallback values,
+   functions (calc, rgb, hsl, clamp), !important flags, keyframes & at-rules.
+   ========================================================================== */
+
+/* Multi-selector with pseudo-classes & attributes */
+input[type="text"], input[type="password"], textarea:focus, .form-input-active {
+  outline: none;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+}
+
+/* Duplicate declarations (intentional legacy CSS fallbacks) */
+.compatibility-box {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  color: black;
+  color: #1e293b;
+  width: 100%;
+  width: calc(100vw - 40px);
+}
+
+/* Complex math functions & modern CSS tokens */
+.fluid-typography {
+  font-size: clamp(1rem, 2.5vw, 2.5rem);
+  line-height: calc(1.2em + 0.5vw);
+  background: hsl(210, 50%, 15%);
+  color: rgb(241, 245, 249);
+}
+
+/* Keyframes at-rule */
+@keyframes shimmerGlow {
+  0% {
+    background-position: -200% 0;
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    background-position: 200% 0;
+    opacity: 0.4;
+  }
+}
+
+/* Nested conditional at-rules */
+@supports (backdrop-filter: blur(10px)) {
+  .glass-panel {
+    backdrop-filter: blur(12px);
+    background-color: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+@media (min-width: 1280px) and (orientation: landscape) {
+  .hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
