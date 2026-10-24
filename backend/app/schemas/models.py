@@ -60,3 +60,15 @@ class AnalysisResponse(BaseModel):
     warnings: List[WarningModel] = Field(default_factory=list)
     unique_properties_list: List[str] = Field(default_factory=list)
     top_properties: List[PropertyStat] = Field(default_factory=list)
+    validation_notice: Optional[str] = Field(
+        default=None,
+        description="Friendly user-facing validation notice for empty or invalid non-CSS uploads"
+    )
+    is_empty: bool = Field(
+        default=False,
+        description="Whether the stylesheet is empty or whitespace-only"
+    )
+    has_valid_rules: bool = Field(
+        default=True,
+        description="Whether valid CSS rules or at-rules were identified"
+    )

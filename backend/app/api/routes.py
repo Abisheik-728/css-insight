@@ -171,7 +171,8 @@ async def analyze_css_file(file: UploadFile = File(...)):
         at_rules=at_rules,
         warnings=warnings,
         comments_count=comments_count,
-        parse_time_ms=parse_time_ms
+        parse_time_ms=parse_time_ms,
+        css_content=css_text
     )
 
     return analysis_result

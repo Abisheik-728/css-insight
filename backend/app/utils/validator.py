@@ -11,11 +11,16 @@ MAGIC_SIGNATURES = {
     b"GIF87a": "GIF image",
     b"GIF89a": "GIF image",
     b"\xff\xd8\xff": "JPEG image",
-    b"RIFF": "RIFF media",
+    b"RIFF": "RIFF media/WebP",
     b"PK\x03\x04": "ZIP/Archive executable",
     b"MZ": "Windows PE executable",
     b"\x7fELF": "Linux ELF binary",
     b"%PDF": "PDF document",
+    b"BM": "BMP image",
+    b"II*\x00": "TIFF image (little-endian)",
+    b"MM\x00*": "TIFF image (big-endian)",
+    b"\x00\x00\x01\x00": "ICO icon image",
+    b"\x00\x00\x02\x00": "CUR cursor image",
 }
 
 
@@ -61,6 +66,16 @@ def validate_css_file(filename: str | None, raw_bytes: bytes, max_size: int = MA
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Uploaded file appears to be a binary file ({desc}), not a CSS stylesheet."
             )
+
+    # 3b. Check for SVG image renamed to .css
+    stripped_raw = raw_bytes.lstrip()
+    if stripped_raw.startswith(b"<svg") or (
+        stripped_raw.startswith(b"<?xml") and b"<svg" in stripped_raw[:2048]
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file appears to be an SVG image, not a CSS stylesheet."
+        )
 
     # 4. Check for binary null bytes
     if b"\x00" in raw_bytes:

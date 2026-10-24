@@ -154,6 +154,72 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
       </div>
 
+      {/* Prominent Non-CSS / Plain Text Notice */}
+      {(!data.has_valid_rules && !data.is_empty) && (
+        <div className="p-4 sm:p-5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0 text-amber-700">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm sm:text-base text-amber-950">
+                No valid CSS rules found. Please upload a valid CSS stylesheet.
+              </h3>
+              <p className="text-xs text-amber-800 mt-0.5">
+                The uploaded file contains no recognized CSS selectors, rule blocks, or at-rules. Technical parser diagnostics ({data.warnings.length} {data.warnings.length === 1 ? 'notice' : 'notices'}) are viewable in the Diagnostics tab.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <button
+              onClick={onGoToAnalyze}
+              className="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs shadow-xs transition-colors cursor-pointer"
+            >
+              Upload Another File
+            </button>
+            <button
+              onClick={onLoadSample}
+              className="px-3 py-1.5 rounded-lg bg-white hover:bg-amber-100/50 border border-amber-200 text-amber-900 font-medium text-xs transition-colors shadow-2xs cursor-pointer"
+            >
+              Load Sample CSS
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Empty Stylesheet Friendly Notice */}
+      {data.is_empty && (
+        <div className="p-4 sm:p-5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center shrink-0 text-blue-700">
+              <Info className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm sm:text-base text-blue-950">
+                Your stylesheet is empty. Add some CSS rules or upload another file.
+              </h3>
+              <p className="text-xs text-blue-700 mt-0.5">
+                This file contains zero CSS rules, selectors, and declarations. No syntax errors were detected.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <button
+              onClick={onGoToAnalyze}
+              className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs shadow-xs transition-colors cursor-pointer"
+            >
+              Upload Stylesheet
+            </button>
+            <button
+              onClick={onLoadSample}
+              className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium text-xs transition-colors shadow-2xs cursor-pointer"
+            >
+              Load Sample CSS
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 6 Real Backend Metrics Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {cards.map((c, idx) => {

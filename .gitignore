@@ -51,3 +51,13 @@ frontend/dist-ssr/
 *.sw?
 .DS_Store
 Thumbs.db
+
+# Environment & Secrets
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.cert
+secrets.json
+credentials.json

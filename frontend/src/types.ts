@@ -56,4 +56,7 @@ export interface AnalysisResult {
   warnings: Warning[];
   unique_properties_list: string[];
   top_properties: PropertyStat[];
+  validation_notice?: string | null;
+  is_empty?: boolean;
+  has_valid_rules?: boolean;
 }

@@ -12,6 +12,7 @@ import {
   FlaskConical,
   ArrowRight,
   AlertCircle,
+  AlertTriangle,
   Terminal,
   ShieldCheck,
   Cpu,
@@ -140,31 +141,81 @@ export const AnalyzeView: React.FC<AnalyzeViewProps> = ({
         </div>
       )}
 
-      {/* Success Banner if parsed */}
+      {/* Banner if parsed */}
       {analysisResult && !isLoading && (
-        <div className="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
-              <CheckCircle2 className="h-5 w-5" />
+        analysisResult.is_empty ? (
+          <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                <AlertCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm font-semibold text-blue-950">
+                  Your stylesheet is empty. Add some CSS rules or upload another file.
+                </p>
+                <p className="text-[11px] sm:text-xs text-blue-700">
+                  <span className="font-mono text-blue-800">{analysisResult.metadata.filename}</span> contains zero CSS rules and zero declarations.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs sm:text-sm font-semibold text-slate-900">
-                Successfully parsed <span className="font-mono text-indigo-700">{analysisResult.metadata.filename}</span> in {analysisResult.metadata.parse_time_ms} ms
-              </p>
-              <p className="text-[11px] sm:text-xs text-slate-600">
-                Extracted {analysisResult.metadata.total_rules} rules, {analysisResult.metadata.total_selectors} selectors, and {analysisResult.metadata.total_declarations} declarations.
-              </p>
-            </div>
+            <button
+              onClick={onViewResults}
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shrink-0 shadow-xs"
+              type="button"
+            >
+              <span>View Overview</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           </div>
-          <button
-            onClick={onViewResults}
-            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shrink-0 shadow-xs"
-            type="button"
-          >
-            <span>View Telemetry Dashboard</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
+        ) : !analysisResult.has_valid_rules ? (
+          <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm font-semibold text-amber-950">
+                  No valid CSS rules found. Please upload a valid CSS stylesheet.
+                </p>
+                <p className="text-[11px] sm:text-xs text-amber-800">
+                  <span className="font-mono text-amber-900">{analysisResult.metadata.filename}</span> contains no recognizable CSS rules or selectors. Diagnostics recorded {analysisResult.warnings.length} parser {analysisResult.warnings.length === 1 ? 'notice' : 'notices'}.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onViewResults}
+              className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shrink-0 shadow-xs"
+              type="button"
+            >
+              <span>View Diagnostics</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm font-semibold text-slate-900">
+                  Successfully parsed <span className="font-mono text-indigo-700">{analysisResult.metadata.filename}</span> in {analysisResult.metadata.parse_time_ms} ms
+                </p>
+                <p className="text-[11px] sm:text-xs text-slate-600">
+                  Extracted {analysisResult.metadata.total_rules} rules, {analysisResult.metadata.total_selectors} selectors, and {analysisResult.metadata.total_declarations} declarations.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onViewResults}
+              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shrink-0 shadow-xs"
+              type="button"
+            >
+              <span>View Telemetry Dashboard</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )
       )}
 
       {/* Primary Workstation Grid: Upload Zone (Left/Main) & Engine Spec Panel (Right) */}

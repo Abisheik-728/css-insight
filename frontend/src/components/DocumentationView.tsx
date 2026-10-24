@@ -5,6 +5,11 @@ import {
   ShieldCheck,
   BarChart2,
   Terminal,
+  Layers,
+  Search,
+  AlertTriangle,
+  Sparkles,
+  CheckCircle2,
 } from 'lucide-react';
 
 export const DocumentationView: React.FC = () => {
@@ -24,7 +29,82 @@ export const DocumentationView: React.FC = () => {
         </p>
       </div>
 
-      {/* Grid of Sections */}
+      {/* Parser Design Decisions (Milestone 1 Core Specification) */}
+      <section className="p-6 sm:p-7 rounded-xl bg-gradient-to-br from-indigo-50/40 via-white to-slate-50/60 border border-indigo-100 shadow-2xs flex flex-col gap-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-indigo-100/70">
+          <div>
+            <div className="flex items-center gap-1.5 text-indigo-600 text-xs font-semibold uppercase tracking-wider mb-1">
+              <Sparkles className="h-4 w-4" />
+              Core Architecture
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+              Parser Design Decisions
+            </h2>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium border border-indigo-200/60 self-start sm:self-auto">
+            <CheckCircle2 className="h-3.5 w-3.5 text-indigo-600" />
+            Milestone 1 Assignment
+          </span>
+        </div>
+
+        {/* Primary Explanation */}
+        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed bg-white/90 p-4 rounded-lg border border-slate-200/80 shadow-2xs">
+          CSS INSIGHT extracts CSS rules, selectors, declarations, properties, colors, at-rules, and comments into structured JSON. These details help developers understand and inspect stylesheets efficiently. The parser uses tinycss2 to process CSS while preserving meaningful information. One edge case considered is malformed CSS, which should produce a diagnostic instead of crashing the application.
+        </p>
+
+        {/* 3 Subsections */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Subsection 1: What I Extract */}
+          <div className="p-4 rounded-xl bg-white border border-slate-200 flex flex-col gap-2.5 shadow-2xs">
+            <div className="flex items-center gap-2 text-indigo-600">
+              <Layers className="h-4 w-4" />
+              <h3 className="font-bold text-sm text-slate-900">
+                What I Extract
+              </h3>
+            </div>
+            <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-700">
+              <li>CSS rules and selectors</li>
+              <li>Property-value declarations</li>
+              <li>Colors, at-rules, and comments</li>
+              <li>Structured JSON and diagnostics</li>
+            </ul>
+          </div>
+
+          {/* Subsection 2: Why I Chose These Details */}
+          <div className="p-4 rounded-xl bg-white border border-slate-200 flex flex-col gap-2.5 shadow-2xs">
+            <div className="flex items-center gap-2 text-indigo-600">
+              <Search className="h-4 w-4" />
+              <h3 className="font-bold text-sm text-slate-900">
+                Why I Chose These Details
+              </h3>
+            </div>
+            <p className="text-xs text-slate-700 leading-relaxed">
+              Structured information helps developers inspect stylesheets, understand their contents, and identify potential issues.
+            </p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Decomposing rules into distinct selectors and declarations allows granular analysis of specificity, duplicate properties, and stylesheet footprint.
+            </p>
+          </div>
+
+          {/* Subsection 3: Edge Case Considered */}
+          <div className="p-4 rounded-xl bg-white border border-slate-200 flex flex-col gap-2.5 shadow-2xs">
+            <div className="flex items-center gap-2 text-amber-600">
+              <AlertTriangle className="h-4 w-4" />
+              <h3 className="font-bold text-sm text-slate-900">
+                Edge Case Considered
+              </h3>
+            </div>
+            <p className="text-xs text-slate-700 leading-relaxed">
+              Malformed CSS may contain missing braces, invalid declarations, or incomplete rules. The parser should handle such input gracefully and provide useful diagnostics rather than crashing.
+            </p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Using tinycss2&apos;s error recovery, invalid declarations or syntax errors generate diagnostic warnings while remaining valid rules continue to be parsed cleanly.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Grid of Technical Specifications */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Section 1 */}
         <div className="p-5 rounded-xl bg-slate-50/70 border border-slate-200 flex flex-col gap-3 shadow-2xs">

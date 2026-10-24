@@ -91,6 +91,11 @@ export const DiagnosticsView: React.FC<DiagnosticsViewProps> = ({ warnings }) =>
                     <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <p className="font-mono text-xs leading-relaxed text-rose-950 font-medium">{item.message}</p>
+                      {item.message.includes('EOF reached before {}') && (
+                        <p className="text-[11px] text-amber-800 mt-1 bg-amber-50 border border-amber-200 rounded p-1.5 font-sans">
+                          <strong>Note:</strong> tinycss2 reached end-of-file without encountering a style rule block <code className="font-mono text-[10px] bg-amber-100 px-1 py-0.5 rounded">{`{}`}</code>. This occurs when uploading plain text or incomplete CSS.
+                        </p>
+                      )}
                       {item.line && (
                         <span className="font-mono text-[11px] text-rose-700 mt-1 block">
                           Syntax recovery at Line {item.line}{item.column ? `:${item.column}` : ''}

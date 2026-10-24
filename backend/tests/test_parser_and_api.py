@@ -285,3 +285,104 @@ def test_api_sample():
     data = res.json()
     assert "content" in data
     assert len(data["content"]) > 100
+
+
+# 19. Plain text upload detection (fake.css)
+def test_plain_text_fake_css_detection():
+    fake_css = "This is not a CSS stylesheet.\nIt is just ordinary text with no CSS rules."
+    response = client.post(
+        "/api/analyze",
+        files={"file": ("fake.css", io.BytesIO(fake_css.encode("utf-8")), "text/css")}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["metadata"]["total_rules"] == 0
+    assert data["metadata"]["total_selectors"] == 0
+    assert data["metadata"]["total_declarations"] == 0
+    assert data["has_valid_rules"] is False
+    assert data["is_empty"] is False
+    assert data["validation_notice"] == "No valid CSS rules found. Please upload a valid CSS stylesheet."
+    # Detailed tinycss2 parser diagnostic must be preserved in warnings for debugging
+    assert len(data["warnings"]) >= 1
+    assert any("EOF reached before {} block" in w["message"] for w in data["warnings"])
+
+
+# 20. Empty CSS upload handling
+def test_empty_css_api_handling():
+    response = client.post(
+        "/api/analyze",
+        files={"file": ("empty.css", io.BytesIO(b""), "text/css")}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["metadata"]["total_rules"] == 0
+    assert data["metadata"]["total_declarations"] == 0
+    assert data["is_empty"] is True
+    assert data["has_valid_rules"] is False
+    assert data["validation_notice"] == "Your stylesheet is empty. Add some CSS rules or upload another file."
+    assert len(data["warnings"]) == 0
+
+
+# 21. Rejection of renamed images (BMP and SVG)
+def test_renamed_images_rejection():
+    # BMP image magic header
+    bmp_bytes = b"BM\x36\x00\x00\x00\x00\x00\x00\x00\x36\x00\x00\x00"
+    with pytest.raises(Exception) as exc:
+        validate_css_file("photo.css", bmp_bytes)
+    assert "binary file" in str(exc.value.detail).lower()
+
+    # SVG image text header
+    svg_bytes = b"<svg xmlns='http://www.w3.org/2000/svg'><circle r='5'/></svg>"
+    with pytest.raises(Exception) as exc_svg:
+        validate_css_file("vector.css", svg_bytes)
+    assert "svg image" in str(exc_svg.value.detail).lower()
+
+
+# 22. Malformed CSS with missing closing brace before next rule
+def test_malformed_unclosed_brace_recovery():
+    malformed_css = """h1 {
+    color: red;
+    font-size: 24px;
+
+.card {
+    padding: 20px;
+}"""
+    # 1. Direct parser inspection
+    rules, at_rules, warnings, comments, elapsed = parse_css_stylesheet(malformed_css, "unclosed_brace.css")
+    # tinycss2 parses 'h1' as a single qualified rule auto-closed at EOF
+    assert len(rules) == 1
+    assert rules[0].selector == "h1"
+    # Preserves declarations recovered before syntax breakdown
+    decls = {d.property: d.value for d in rules[0].declarations}
+    assert decls["color"] == "red"
+    assert decls["font-size"] == "24px"
+    assert len(rules[0].declarations) == 2
+    # At-rules count
+    assert len(at_rules) == 0
+    # Captured parser recovery diagnostic from tinycss2
+    assert len(warnings) == 1
+    assert warnings[0].type == "parse_error"
+    assert warnings[0].line == 5
+    assert warnings[0].column == 1
+    assert "Expected <ident> for declaration name" in warnings[0].message
+
+    # 2. Full API endpoint round-trip
+    response = client.post(
+        "/api/analyze",
+        files={"file": ("unclosed_brace.css", io.BytesIO(malformed_css.encode("utf-8")), "text/css")}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    meta = data["metadata"]
+    assert meta["total_rules"] == 1
+    assert meta["total_selectors"] == 1
+    assert meta["total_declarations"] == 2
+    assert meta["unique_properties"] == 2
+    assert meta["unique_colors"] == 1
+    assert data["detected_colors"] == ["red"]
+    assert len(data["warnings"]) == 1
+    assert data["warnings"][0]["line"] == 5
+    assert data["warnings"][0]["column"] == 1
+    assert data["has_valid_rules"] is True
+    assert data["is_empty"] is False
+    assert data["validation_notice"] is None

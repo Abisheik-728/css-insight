@@ -19,10 +19,12 @@ def calculate_css_statistics(
     at_rules: List[AtRuleModel],
     warnings: List[WarningModel],
     comments_count: int,
-    parse_time_ms: float
+    parse_time_ms: float,
+    css_content: str = "",
 ) -> AnalysisResponse:
     """
     Computes accurate, non-fabricated metrics and statistics from parsed CSS objects.
+    Classifies empty stylesheets, valid rule sets, and plain text uploads.
     """
     total_rules = len(rules)
 
@@ -63,7 +65,34 @@ def calculate_css_statistics(
     # 5. Detected colors sorted
     sorted_colors = sorted(list(detected_colors_set))
 
-    # 6. Metadata summary
+    # 6. Content classification: empty vs. plain-text vs. valid CSS
+    if css_content:
+        stripped_text = css_content.strip()
+        is_whitespace_or_empty = (stripped_text == "")
+        is_comment_only = False
+        if not is_whitespace_or_empty and total_rules == 0 and len(at_rules) == 0:
+            import re
+            no_comments = re.sub(r'/\*.*?\*/', '', css_content, flags=re.DOTALL).strip()
+            if not no_comments and len(warnings) == 0:
+                is_comment_only = True
+    else:
+        is_whitespace_or_empty = (file_size_bytes == 0) or (total_rules == 0 and len(at_rules) == 0 and len(warnings) == 0)
+        is_comment_only = False
+
+    if is_whitespace_or_empty or is_comment_only:
+        is_empty = True
+        has_valid_rules = False
+        validation_notice = "Your stylesheet is empty. Add some CSS rules or upload another file."
+    elif total_rules == 0 and len(at_rules) == 0:
+        is_empty = False
+        has_valid_rules = False
+        validation_notice = "No valid CSS rules found. Please upload a valid CSS stylesheet."
+    else:
+        is_empty = False
+        has_valid_rules = True
+        validation_notice = None
+
+    # 7. Metadata summary
     metadata = MetadataModel(
         filename=filename,
         file_size_bytes=file_size_bytes,
@@ -84,5 +113,8 @@ def calculate_css_statistics(
         detected_colors=sorted_colors,
         warnings=warnings,
         unique_properties_list=unique_properties_list,
-        top_properties=top_properties
+        top_properties=top_properties,
+        validation_notice=validation_notice,
+        is_empty=is_empty,
+        has_valid_rules=has_valid_rules
     )
